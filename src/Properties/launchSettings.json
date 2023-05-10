@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "BackupMonitor": {
+      "commandName": "Project",
+      "commandLineArgs": "--name hello.world"
+    }
+  }
+}
