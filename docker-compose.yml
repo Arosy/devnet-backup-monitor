@@ -1,0 +1,21 @@
+version: '3'
+services:
+  backup-monitor:
+    ## Only use the restart option when running the container with INTERVAL specified,
+    ## otherwise the container will exit upon completing its task.
+    #restart: unless-stopped
+    container_name: backup-monitor
+    image: inquinator/devnet-backup-monitor:latest
+    environment:
+      - NAME=my-backup
+      ## Optionally you can specify an interval to re-run the backup creation every x seconds.
+      #- INTERVAL=43200
+      ## Optionally you can specify a password to protect your backup files.
+      #- PASSWORD=test123
+    volumes:
+      ## Basically you can add as many directories as you desire within the */backup/* directory,
+      ## however they should be mounted as individual directories and **not directly** as */backup/* 
+      - /some/path/to/my-dir:/backup/my-dir
+      - /some/path/to/my-dir2:/backup/my-dir2
+      ## The output directory on the host machine where the backup files should be stored.
+      - {HOME}/backups:/output

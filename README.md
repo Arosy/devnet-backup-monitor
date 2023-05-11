@@ -1,6 +1,9 @@
 # devnet-backup-monitor
-An Application written in C# to easily manage the creation and transfers of backups on linux machines.
+A lightweight and dockerized application which allows the hassle free creation of backups for any folder structure on your system(s).
 
+- If configured even the transfer of these files to remote storages.
+- An integrated MQTT client to push messages to a configured broker whenever certain actions are performed by this container.
+- Either run the container a single time or keep it running with the interval option.
 
 ### Configuration
 
@@ -10,7 +13,7 @@ The configuration of your instance is done by using environment variables:
 
 | Key | Value | Description |
 |:-----------------:|:----------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------:|
-| NAME | backup | The name to use for generated backup files. |
+| NAME | `empty` | The name to use for generated backup files. By default the name will be auto generated based on the current UTC time ticks. |
 | PASSWORD | `empty` | Optionally a password to use for the generated backup file. |
 | INTERVAL | 0 | Optionally specify an interval in seconds to shedule reoccuring backup creations. This prevents the container from exiting when a backup has created unless theres an error. |
 | WITH_DATE | 0 | If set to 1 the backup files will contain the current date (Year,Month,Day) in its file name. |
@@ -49,7 +52,7 @@ services:
     ## otherwise the container will exit upon completing its task.
     #restart: unless-stopped
     container_name: backup-monitor
-    image: inquinator/devnet-auth-monitor:latest
+    image: inquinator/devnet-backup-monitor:latest
     environment:
       - NAME=my-backup
       ## Optionally you can specify an interval to re-run the backup creation every x seconds.

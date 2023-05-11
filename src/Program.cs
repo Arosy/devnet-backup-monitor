@@ -46,6 +46,18 @@ namespace BackupMonitor
             else
             {
                 _basePath = "/backup";
+
+                if (!Directory.Exists(_basePath))
+                {
+                    Log("ERROR: cannot find /backup directory");
+                    return;
+                }
+
+                if (!Directory.Exists("/output"))
+                {
+                    Log("ERROR: cannot find /output directory");
+                    return;
+                }
             }
 
             _sources = new List<string>();

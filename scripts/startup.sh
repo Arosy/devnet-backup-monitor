@@ -6,11 +6,19 @@ if [ ! -d "/var/app" ]; then
 fi
 
 if [ ! -f "/var/app/BackupMonitor.dll" ]; then
-  echo "cannot find local DEV App binaries .."
+  echo "cannot find app binaries .."
   exit 1
 fi
 
-FINAL_ARGS="--name=$NAME --interval=$INTERVAL"
+FINAL_ARGS=""
+
+if [ "$NAME" != "" ]; then
+  FINAL_ARGS="--name=$NAME"
+fi
+
+if [ "$INTERVAL" != "" ]; then
+  FINAL_ARGS="$FINAL_ARGS --interval=$INTERVAL"
+fi
 
 if [ "$PASSWORD" != "" ]; then
   FINAL_ARGS="$FINAL_ARGS --password=$PASSWORD"
@@ -40,4 +48,5 @@ if [ "$ADD_ARGS" != "" ]; then
   FINAL_ARGS="$FINAL_ARGS $ADD_ARGS"
 fi
 
+echo "running app with: '$FINAL_ARGS'"
 dotnet /var/app/BackupMonitor.dll $FINAL_ARGS

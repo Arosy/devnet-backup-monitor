@@ -24,8 +24,8 @@ if [ "$PROJ_FILE" = "" ] || [ ! -f "$PROJ_FILE" ]; then
   exit 1
 fi
 
-echo "clearing old builds, hang tight .."
-rm -f -r $BINARY_OUT*
+#echo "clearing old builds, hang tight .."
+#rm -f -r $BINARY_OUT*
 
 if [ "$4" == "develop" ]; then
   PARAMS="--version-suffix dev"

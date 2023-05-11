@@ -55,7 +55,7 @@ namespace BackupMonitor
             set;
         }
 
-        [Option("mqtt-port", Default = 1883, Required = false)]
+        [Option("mqtt-port", Required = false)]
         public ushort MqttPort
         {
             get;

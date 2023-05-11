@@ -2,7 +2,7 @@
 FROM mcr.microsoft.com/dotnet/runtime:6.0.7-jammy-amd64
 
 # setup basic variables
-ENV NAME="backup" \
+ENV NAME="" \
     INTERVAL=0 \
     PASSWORD="" \
     MQTT_HOST="" \
