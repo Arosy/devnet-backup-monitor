@@ -164,7 +164,7 @@ namespace BackupMonitor
 
                 if (string.IsNullOrWhiteSpace(_options.Name))
                 { // auto generate name
-                    name = $"backup-{DateTime.UtcNow.Ticks}";
+                    name = $"backup-{DateTime.Now.Ticks}";
                 }
                 else
                 {
@@ -173,12 +173,12 @@ namespace BackupMonitor
 
                 if (_options.WithDate)
                 {
-                    name = $"{name}-{DateTime.UtcNow.Year}-{DateTime.UtcNow.Month}-{DateTime.UtcNow.Day}";
+                    name = $"{name}-{DateTime.Now.Year}-{DateTime.Now.Month}-{DateTime.Now.Day}";
                 }
 
                 if (_options.WithTime)
                 {
-                    name = $"{name}-{DateTime.UtcNow.Hour}-{DateTime.UtcNow.Minute}-{DateTime.UtcNow.Second}";
+                    name = $"{name}-{DateTime.Now.Hour}-{DateTime.Now.Minute}-{DateTime.Now.Second}";
                 }
 
                 if (_isMqttEnabled)
@@ -187,6 +187,11 @@ namespace BackupMonitor
                                                                                                                                                           $"{name}.zip",
                                                                                                                                                           !string.IsNullOrWhiteSpace(_options.Password),
                                                                                                                                                           "creating"))));
+                }
+
+                if (!string.IsNullOrWhiteSpace(_options.Password))
+                {
+                    zip.Password = _options.Password;
                 }
 
                 backupInfo = new FileInfo(_basePath);
@@ -217,10 +222,6 @@ namespace BackupMonitor
 
 
 
-                if (!string.IsNullOrWhiteSpace(_options.Password))
-                {
-                    zip.Password = _options.Password;
-                }
 
                 zip.Save($"/output/{name}.zip");
 

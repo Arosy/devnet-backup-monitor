@@ -1,9 +1,16 @@
 # devnet-backup-monitor
+
+### Description
+
 A lightweight and dockerized application which allows the hassle free creation of backups for any folder structure on your system(s).
 
-- If configured even the transfer of these files to remote storages.
-- An integrated MQTT client to push messages to a configured broker whenever certain actions are performed by this container.
+
+### Features
+
+- The backup files created are simple zip archives, meaning there should be no problem in accessing them on any platform.
+- Protect your precious backup files by specifying a password.
 - Either run the container a single time or keep it running with the interval option.
+- An integrated MQTT client to push messages to a configured broker whenever certain actions are performed by this container.
 
 ### Configuration
 
@@ -24,10 +31,6 @@ The configuration of your instance is done by using environment variables:
 | MQTT_ID | `empty` | Specify your own client id which this instance will use or leave it empty to auto generate. |
 | MQTT_USER | `empty` | Specify a username used for authentification for your mqtt broker. |
 | MQTT_PASS | `empty` | Specify a password used for authentification for your mqtt broker. |
-
-#### Customization
-
-- By default the container will run only once, that said you should re-run the container whenever you want to have a backup from the mounted source directories.
 
 ### Get it up and running
 
@@ -53,17 +56,33 @@ services:
     #restart: unless-stopped
     container_name: backup-monitor
     image: inquinator/devnet-backup-monitor:latest
-    environment:
-      - NAME=my-backup
+#    environment:
+#       - NAME=my-backup
       ## Optionally you can specify an interval to re-run the backup creation every x seconds.
-      #- INTERVAL=43200
+#       - INTERVAL=43200
       ## Optionally you can specify a password to protect your backup files.
-      #- PASSWORD=test123
+#       - PASSWORD=test123
+      ## Includes the current local date in the backup file name as such YYYY-MM-DD
+#       - WITH_DATE=1
+      ## Includes the current local time in the backup file name as such HH-MM-SS
+#       - WITH_TIME=1
     volumes:
       ## Basically you can add as many directories as you desire within the */backup/* directory,
       ## however they should be mounted as individual directories and **not directly** as */backup/* 
       - /some/path/to/my-dir:/backup/my-dir
       - /some/path/to/my-dir2:/backup/my-dir2
       ## The output directory on the host machine where the backup files should be stored.
-      - {HOME}/backups:/output
+      - /some/path/to/backups:/output
 ```
+
+### Links
+
+- TODO
+
+### Changelog
+
+**v0.0.2**
+- fixed an issue where the specified password was not applied to backup files.
+
+**v0.0.1**
+- initial upload.
