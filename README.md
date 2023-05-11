@@ -25,7 +25,6 @@ The configuration of your instance is done by using environment variables:
 #### Customization
 
 - By default the container will run only once, that said you should re-run the container whenever you want to have a backup from the mounted source directories.
--
 
 ### Get it up and running
 
@@ -40,7 +39,7 @@ $ docker run -d --rm --name="backup_monitor" \
                      -e NAME="my-backup" inquinator/devnet-backup-monitor:latest
 ```
 
-##### `docker-compose`
+##### `docker-compose.yml`
 
 ```yml
 version: '3'

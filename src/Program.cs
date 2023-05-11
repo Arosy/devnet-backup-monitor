@@ -33,6 +33,12 @@ namespace BackupMonitor
                               _options = o;
                           });
 
+            if (_options == null)
+            {
+                // exit silently, the parser prints a console message on its own.
+                return;
+            }
+
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
                 _basePath = "./backup";
