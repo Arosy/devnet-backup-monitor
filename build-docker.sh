@@ -1,17 +1,6 @@
 #!/bin/bash
-IMG_NAME=""
+IMG_NAME=$(cat ./IMAGE)
 IMG_VER=$(cat ./VERSION)
-
-if [ ! -f "./CONFIG" ]; then
-  echo "cannot find CONFIG file!"
-  exit 1
-fi
-
-cat "./CONFIG" | while IFS='=' read key value; do
-  if [[ "$key" == "image" ]]; then
-    IMG_NAME="$value"
-  fi
-done
 
 
 usage() { 
@@ -32,18 +21,20 @@ while getopts t:-: OPT; do
     OPTARG="${OPTARG#=}"      # if long option argument, remove assigning `=`
   fi
   case "$OPT" in
-	image )			needs_arg; IMG_NAME="$OPTARG" ;;
+	image )		   needs_arg; IMG_NAME="$OPTARG" ;;
     ??* )          die "Illegal option --$OPT" ;;  # bad long option
     ? )            exit 2 ;;  # bad short option (error reported via getopts)
   esac
 done
 
-if [ -z "$IMG_NAME" ]; then
+echo $IMG_NAME
+
+if [ "$IMG_NAME" == "" ]; then
   echo "no image name was specified!"
   exit 1
 fi
 
-if [ -z "$IMG_VER" ]; then
+if [ "$IMG_VER" == "" ]; then
   echo "no image version was specified!"
   exit 1
 fi
