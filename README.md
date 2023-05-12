@@ -74,7 +74,7 @@ services:
 
 ### Links
 
-- [Dockerhub](https://hub.docker.com/repository/docker/inquinator/devnet-backup-monitor)
+- [Dockerhub](https://hub.docker.com/r/inquinator/devnet-backup-monitor)
 
 - [GitHub](https://github.com/Arosy/devnet-backup-monitor)
 
