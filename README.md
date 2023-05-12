@@ -16,8 +16,6 @@ A lightweight and dockerized application which allows the hassle free creation o
 
 #### Environment Variables
 
-The configuration of your instance is done by using environment variables:
-
 | Key | Value | Description |
 |:-----------------:|:----------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------:|
 | NAME | `empty` | The name to use for generated backup files. By default the name will be auto generated based on the current UTC time ticks. |
@@ -78,10 +76,17 @@ services:
 
 - [Dockerhub](https://hub.docker.com/repository/docker/inquinator/devnet-backup-monitor)
 
-### Changelog
+- [GitHub](https://github.com/Arosy/devnet-backup-monitor)
 
-**v0.0.2**
-- fixed an issue where the specified password was not applied to backup files.
+### TODO
+
+- Enable the automatic transfer of backups to a remote host.
+
+### Contribute
+
+- Feel free to submit any changes you see fit or do whatever you want, because its MIT licensed.
+
+### Changelog
 
 **v0.0.1**
 - initial upload.
