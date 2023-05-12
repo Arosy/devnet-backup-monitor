@@ -3,6 +3,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <Authors>Arosy</Authors>
+    <Version>0.0.2</Version>
+    <Product>DevNet Backup Monitor</Product>
+    <Copyright>(c) 2023 Arosy</Copyright>
+    <Description>A lightweight and dockerized application which allows the hassle free creation of backups for any folder structure on your system(s).</Description>
   </PropertyGroup>
 
   <ItemGroup>

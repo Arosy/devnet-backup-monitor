@@ -26,18 +26,17 @@ The configuration of your instance is done by using environment variables:
 | WITH_DATE | 0 | If set to 1 the backup files will contain the current date (Year,Month,Day) in its file name. |
 | WITH_TIME | 0 | If set to 1 the backup files will contain the current time (Hour,Minute,Second) in its file name. |
 | MQTT_HOST | `empty` | Specify the hostname or ip address of your mqtt broker. If its empty the MQTT feature will be disabled and other params starting with *MQTT_* will be ignored. |
-| MQTT_PORT | 1883 | Specify the port of your mqtt broker. This property is only used when the **MQTT_HOST** is set. |
-| MQTT_HOSTID | `empty` | A domain name like value to identify this instance in MQTT messages. (monitor/+/backup/#) |
-| MQTT_ID | `empty` | Specify your own client id which this instance will use or leave it empty to auto generate. |
-| MQTT_USER | `empty` | Specify a username used for authentification for your mqtt broker. |
-| MQTT_PASS | `empty` | Specify a password used for authentification for your mqtt broker. |
+| MQTT_PORT | 1883 | Specify the port of your mqtt broker. This property is only used when the **MQTT_HOST** variable is not empty. |
+| MQTT_HOSTID | `empty` | A domain name like value to identify this instance in MQTT messages. (monitor/+/backup/#). This property is only used when the **MQTT_HOST** variable is not empty. |
+| MQTT_ID | `empty` | Specify your own client id which this instance will use or leave it empty to auto generate. This property is only used when the **MQTT_HOST** variable is not empty. |
+| MQTT_USER | `empty` | Specify a username used for authentification for your mqtt broker. This property is only used when the **MQTT_HOST** variable is not empty. |
+| MQTT_PASS | `empty` | Specify a password used for authentification for your mqtt broker. This property is only used when the **MQTT_HOST** variable is not empty. |
 
 ### Get it up and running
 
 ##### `docker run`
 
 ```bash
-# You may want to change SESSION_NAME, ADMIN_PASSWORD or host-volume
 $ docker run -d --rm --name="backup_monitor" \
                      -v "/some/path/to/my-dir:/backup/my-dir" \
                      -v "/some/path/to/my-dir2:/backup/my-dir2" \
