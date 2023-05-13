@@ -20,6 +20,7 @@ A lightweight and dockerized application which allows the hassle free creation o
 | NAME | `empty` | The name to use for generated backup files. By default the name will be auto generated based on the current UTC time ticks. |
 | PASSWORD | `empty` | Optionally a password to use for the generated backup file. |
 | INTERVAL | 0 | Optionally specify an interval in seconds to shedule reoccuring backup creations. This prevents the container from exiting when a backup has created unless theres an error. |
+| RUN_AT_TIME | `empty` | Alternatively, but optionally you can specify a time in HH:MM:SS format when this instace will create backup files.
 | WITH_DATE | 0 | If set to 1 the backup files will contain the current date (Year,Month,Day) in its file name. |
 | WITH_TIME | 0 | If set to 1 the backup files will contain the current time (Hour,Minute,Second) in its file name. |
 | MQTT_HOST | `empty` | Specify the hostname or ip address of your mqtt broker. If its empty the MQTT feature will be disabled and other params starting with *MQTT_* will be ignored. |
