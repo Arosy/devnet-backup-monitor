@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
-
+using System.Xml.Linq;
+using BackupMonitor.Templates;
 using CommandLine;
 using Ionic.Zip;
 using Newtonsoft.Json;
@@ -19,8 +22,10 @@ namespace BackupMonitor
         private static List<string> _sources;
         private static MqttClient _client;
         private static string _basePath;
-        private static bool _isMqttEnabled;
         private static bool _autorun;
+
+        private static bool _isUploadEnabled;
+        private static bool _isMqttEnabled;
 
         private static DirectoryInfo _outputInfo;
         private static DirectoryInfo _backupInfo;
@@ -49,6 +54,12 @@ namespace BackupMonitor
                 ConnectMqtt();
             }
 
+            if (!string.IsNullOrWhiteSpace(_options.ArchiveType) && !_options.ArchiveType.ToLower().Equals("none"))
+            {
+                _isUploadEnabled = true;
+                Log("upload feature is enabled!");
+            }
+
             if (_options.Interval > 0)
             {
                 _autorun = true;
@@ -74,6 +85,9 @@ namespace BackupMonitor
                     break;
                 }
             }
+
+            // ensure that we get out of child-threads, etc.
+            Environment.Exit(0);
         }
 
 
@@ -109,6 +123,27 @@ namespace BackupMonitor
                 return;
             }
 
+            if (string.IsNullOrWhiteSpace(_options.MqttHost))
+            {
+                LogError("cannot connect to MQTT broker with no host specified.");
+                _isMqttEnabled = false;
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(_options.Hostname))
+            {
+                LogError("cannot publish MQTT messages with no hostname specified to identify this instance.");
+                _isMqttEnabled = false;
+                return;
+            }
+
+            if (_options.MqttPort <= 0)
+            {
+                LogError("cannot connect to MQTT broker with no port specified.");
+                _isMqttEnabled = false;
+                return;
+            }
+
             if (_client == null)
             {
                 _client = new MqttClient(_options.MqttHost, _options.MqttPort, false, null, null, MqttSslProtocols.None);
@@ -118,7 +153,7 @@ namespace BackupMonitor
             {
                 if (string.IsNullOrWhiteSpace(_options.MqttClientId))
                 {
-                    _options.MqttClientId = new Guid().ToString();
+                    _options.MqttClientId = Guid.NewGuid().ToString();
                     Log($"generated random MQTT client id: '{_options.MqttClientId}' for this session.");
                 }
 
@@ -162,7 +197,6 @@ namespace BackupMonitor
 
             Log($"found {_sources.Count} top level sources to process.");
         }
-
         static void WriteBackupFile()
         {
             var time = DateTime.Now;
@@ -170,6 +204,7 @@ namespace BackupMonitor
 
             using (ZipFile zip = new ZipFile())
             {
+                BackupFileInfo backupInfo;
                 FileInfo info;
                 string name;
                 string path;
@@ -196,21 +231,6 @@ namespace BackupMonitor
                 if (_options.WithTime)
                 {
                     name = $"{name}-{time.Hour}-{time.Minute}-{time.Second}";
-                }
-
-                if (_isMqttEnabled)
-                {
-                    try
-                    {
-                        _client.Publish($"monitor/{_options.Hostname}/backup/status", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new BackupSourceInfo(_sources.ToArray(),
-                                                                                                                                                              $"{name}.zip",
-                                                                                                                                                              !string.IsNullOrWhiteSpace(_options.Password),
-                                                                                                                                                              "creating"))));
-                    }
-                    catch (Exception ex)
-                    {
-                        LogError($"cannot publish mqtt message: '{ex.Message}'");
-                    }
                 }
 
                 if (!string.IsNullOrWhiteSpace(_options.Password))
@@ -261,7 +281,21 @@ namespace BackupMonitor
                     LogWarn($"the backup name contains invalid symbols: '{invalidChars}' and was renamed to: '{tmpName}' (they will be replaced with empty chars)");
                 }
 
-                foreach(var item in _sources)
+
+
+                backupInfo = new BackupFileInfo($"{name}.zip",
+                                                _sources.ToArray(),
+                                                !string.IsNullOrWhiteSpace(_options.Password),
+                                                _isUploadEnabled,
+                                                _autorun);
+
+                if (_isMqttEnabled)
+                {
+                    backupInfo.Status = BackupStatus.FileCreating;
+                    PublishMQTT($"monitor/{_options.Hostname}/backup/status", backupInfo);
+                }
+
+                foreach (var item in _sources)
                 {
                     info = new FileInfo(item);
 
@@ -288,28 +322,187 @@ namespace BackupMonitor
                     }
                 }
 
+                Log("saving backup file, hang tight ..");
                 zip.Save($"/output/{name}.zip");
                 Log($"saved backup file: '{name}.zip'");
                 
                 if (_isMqttEnabled)
                 {
+                    backupInfo.Status = BackupStatus.FileCreated;
+                    backupInfo.SizeInBytes = new FileInfo($"/output/{name}.zip").Length;
+
+                    PublishMQTT($"monitor/{_options.Hostname}/backup/status", backupInfo);
+                }
+
+                // push upload
+                if (_isUploadEnabled)
+                {
                     try
                     {
-                        _client.Publish($"monitor/{_options.Hostname}/backup/status", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new BackupSourceInfo(_sources.ToArray(),
-                                                                                                                                                              $"{name}.zip",
-                                                                                                                                                              !string.IsNullOrWhiteSpace(_options.Password),
-                                                                                                                                                              "saved",
-                                                                                                                                                              new FileInfo($"/output/{name}.zip").Length))));
+                        UploadBackupFile(name, backupInfo);
                     }
                     catch (Exception ex)
                     {
-                        LogError($"cannot publish mqtt message: '{ex.Message}'");
+                        LogError($"an error occured while uploading backup file: '{ex.Message}'");
                     }
                 }
+            }
+        }
+        static void UploadBackupFile(string name, BackupFileInfo backupInfo)
+        {
+            IArchiveConnector connector;
+            TransferStatus status;
 
+
+            if (!_isUploadEnabled)
+            {
+                LogWarn("upload to archive is not configured, skipping connectiong attempt.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentNullException("cannot upload backup with name NULL/Empty.");
+            }
+
+            if (string.IsNullOrWhiteSpace(_options.ArchiveType))
+            {
+                _isUploadEnabled = false;
+                LogWarn("there is no archive type specified, disabled upload feature for this instance.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(_options.ArchiveUsername))
+            {
+                _isUploadEnabled = false;
+                LogWarn("there is no username for the archive specified, disabled upload feature for this instance.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(_options.ArchivePath))
+            {
+                _options.ArchivePath = "~/";
+            }
+
+            // PUSH MQTT
+            if (_isMqttEnabled)
+            {
+                backupInfo.Status = BackupStatus.FileUploading;
+                PublishMQTT($"monitor/{_options.Hostname}/backup/status", backupInfo);
+            }
+
+            switch (_options.ArchiveType.ToLower())
+            {
+                case "scp":
+                    connector = new ArchiveScpConnector();
+                    /*
+                    if (string.IsNullOrWhiteSpace(_options.ArchivePassword))
+                    {
+                        _isUploadEnabled = false;
+                        LogError("cannot upload with scp when no password is specified.");
+                        return;
+                    }
+
+
+
+                    Log(Bash($"sshpass -p {_options.ArchivePassword} scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p23 /output/{name}.zip {_options.ArchiveUsername}@{_options.ArchiveEndpoint}:{_options.ArchivePath}"));*/
+                    break;
+
+                default:
+                    throw new NotSupportedException($"'{_options.ArchiveType.ToLower()}' is not a valid archive type.");
+            }
+
+            // no matter the connector type, the initialization is the same for all
+            connector.Initialize(new ArchiveHostOptions(_options.ArchiveEndpoint,
+                                                        _options.ArchiveUsername,
+                                                        _options.ArchivePassword,
+                                                        _options.ArchivePath));
+
+            Log("trying to upload backup file");
+
+            // hope for the best and try to upload the file
+            status = connector.Transfer($"/output/{name}.zip");
+
+            // PUSH MQTT
+            if (_isMqttEnabled)
+            {
+                if (status == TransferStatus.Success)
+                {
+                    backupInfo.Status = BackupStatus.FileUploaded;
+                    backupInfo.Error = string.Empty;
+                }
+                else
+                {
+                    backupInfo.Status = BackupStatus.Error;
+                    backupInfo.Error = connector.LastError;
+                }
+
+                PublishMQTT($"monitor/{_options.Hostname}/backup/status", backupInfo);
+            }
+
+            if (status == TransferStatus.Success)
+            {
+                Log("the file upload was successful.");
+            }
+            else
+            {
+                LogError(connector.LastError);
+
+                if (!_autorun)
+                { // indicate error exit when not looping
+                  // the error could be temp. only ..
+                    Environment.Exit(1);
+                }
             }
         }
 
+
+
+
+        static void PublishMQTT(string topic, object data)
+        {
+            string jsonData;
+
+
+            if (string.IsNullOrWhiteSpace(topic))
+            {
+                throw new ArgumentNullException("cannot publish to NULL topic.");
+            }
+
+            if (data == null)
+            {
+                throw new ArgumentNullException("cannot publish NULL data.");
+            }
+
+            if (!_isMqttEnabled)
+            {
+                return;
+            }
+
+            try
+            {
+                jsonData = JsonConvert.SerializeObject(data);
+            }
+            catch (Exception ex)
+            {
+                LogError($"cannot publish mqtt message: '{ex.Message}'");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(jsonData))
+            {
+                throw new InvalidOperationException($"cannot publish empty mqtt message");
+            }
+
+            try
+            {
+                _client.Publish(topic, Encoding.UTF8.GetBytes(jsonData));
+            }
+            catch (Exception ex)
+            {
+                LogError($"cannot publish mqtt message: '{ex.Message}'");
+            }
+        }
 
         static void LogWarn(string message)
         {
@@ -338,25 +531,6 @@ namespace BackupMonitor
         {
             Console.WriteLine($"{DateTime.Now} >> {message}");
         }
-    }
 
-    public struct BackupSourceInfo
-    {
-        public DateTime Date;
-        public string Name;
-        public bool IsEncrypted;
-        public string Status;
-        public string[] Paths;
-        public long? SizeInBytes;
-
-        public BackupSourceInfo(string[] paths, string name, bool isEncrypted, string status, long? sizeInBytes = 0)
-        {
-            this.Date = DateTime.Now;
-            this.Paths = paths;
-            this.Name = name;
-            this.IsEncrypted = isEncrypted;
-            this.Status = status;
-            this.SizeInBytes = sizeInBytes;
-        }
     }
 }

@@ -29,6 +29,11 @@ A lightweight and dockerized application which allows the hassle free creation o
 | MQTT_ID | `empty` | Specify your own client id which this instance will use or leave it empty to auto generate. This property is only used when the **MQTT_HOST** variable is not empty. |
 | MQTT_USER | `empty` | Specify a username used for authentification for your mqtt broker. This property is only used when the **MQTT_HOST** variable is not empty. |
 | MQTT_PASS | `empty` | Specify a password used for authentification for your mqtt broker. This property is only used when the **MQTT_HOST** variable is not empty. |
+| ARCHIVE_TYPE | `empty` | Specify one of the supported types (currently: ftp or scp) to enable the automatic transfer when the backup file creation has completed. |
+| ARCHIVE_ENDPOINT | `empty` | Specify the hostname / ip address with the target port in a combo like: *example.com:21* or *123.123.123.123:21*. If you're using the default port you can just specify the hostname / ip address. |
+| ARCHIVE_USER | `empty` | Specify the username required for authentification on the remote server. |
+| ARCHIVE_PASS | `empty` | Depending on your configuration you may or may not have to fill this field, however this is used for authentification aswell. |
+| ARCHIVE_PATH | `empty` | Specify a relative path on the archive server which is used as base path for the automatic uploaded backup files. |
 
 ### Get it up and running
 

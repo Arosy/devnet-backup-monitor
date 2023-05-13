@@ -41,17 +41,17 @@ fi
 
 echo "detected '$OS_PREFIX' as host system"
 
-# LINUX
+## LINUX
 dotnet publish $PROJ_FILE -c Debug -r linux-x64 -f $NETVER --output "$BINARY_OUT-debug/linux-x64" $PARAMS
 dotnet publish $PROJ_FILE -c Release -r linux-x64 -f $NETVER --output "$BINARY_OUT/linux-x64" $PARAMS
 
-# OSX
-dotnet publish $PROJ_FILE -c Debug -r osx-x64 -f $NETVER --output "$BINARY_OUT-debug/osx-x64" $PARAMS
-dotnet publish $PROJ_FILE -c Release -r osx-x64 -f $NETVER --output "$BINARY_OUT/osx-x64" $PARAMS
+## OSX
+#dotnet publish $PROJ_FILE -c Debug -r osx-x64 -f $NETVER --output "$BINARY_OUT-debug/osx-x64" $PARAMS
+#dotnet publish $PROJ_FILE -c Release -r osx-x64 -f $NETVER --output "$BINARY_OUT/osx-x64" $PARAMS
 
-# WINDOWS
-dotnet publish $PROJ_FILE -c Debug -r win-x64 -f $NETVER --output "$BINARY_OUT-debug/win-x64" $PARAMS
-dotnet publish $PROJ_FILE -c Release -r win-x64 -f $NETVER --output "$BINARY_OUT/win-x64" $PARAMS
+## WINDOWS
+#dotnet publish $PROJ_FILE -c Debug -r win-x64 -f $NETVER --output "$BINARY_OUT-debug/win-x64" $PARAMS
+#dotnet publish $PROJ_FILE -c Release -r win-x64 -f $NETVER --output "$BINARY_OUT/win-x64" $PARAMS
 
 
 

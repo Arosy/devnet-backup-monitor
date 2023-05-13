@@ -24,7 +24,6 @@ namespace BackupMonitor
             set;
         }
 
-
         [Option("interval", Required = false, HelpText = "Optionally specify an interval value in seconds to shedule reoccuring backup creations.")]
         public int Interval
         {
@@ -85,6 +84,42 @@ namespace BackupMonitor
 
         [Option("mqtt-pass", Required = false)]
         public string MqttPassword
+        {
+            get;
+            set;
+        }
+
+
+        [Option("archive-type", Required = false, HelpText = "Define the type of the archive, currently supported is: ftp, scp")]
+        public string ArchiveType
+        {
+            get;
+            set;
+        }
+
+        [Option("archive-endpoint", Required = false)]
+        public string ArchiveEndpoint
+        {
+            get;
+            set;
+        }
+
+        [Option("archive-user", Required = false)]
+        public string ArchiveUsername
+        {
+            get;
+            set;
+        }
+
+        [Option("archive-pass", Required = false)]
+        public string ArchivePassword
+        {
+            get;
+            set;
+        }
+
+        [Option("archive-path", Required = false, HelpText = "A relative path on the archive host where uploaded files should be stored.")]
+        public string ArchivePath
         {
             get;
             set;

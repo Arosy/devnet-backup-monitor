@@ -49,12 +49,32 @@ if [[ "$WITH_DATE" -eq 1 ]]; then
 fi
 
 if [[ "$WITH_TIME" -eq 1 ]]; then
-  FINAL_ARGS="$FINAL_ARGS--with-time"
+  FINAL_ARGS="$FINAL_ARGS--with-time "
 fi
 
-if [ "$ADD_ARGS" != "" ]; then
-  FINAL_ARGS="$FINAL_ARGS $ADD_ARGS"
+if [ "$ARCHIVE_TYPE" != "" ]; then
+  FINAL_ARGS="$FINAL_ARGS--archive-type=$ARCHIVE_TYPE "
 fi
 
-echo "running app with: '$FINAL_ARGS'"
+if [ "$ARCHIVE_ENDPOINT" != "" ]; then
+  FINAL_ARGS="$FINAL_ARGS--archive-endpoint=$ARCHIVE_ENDPOINT "
+fi
+
+
+if [ "$ARCHIVE_USER" != "" ]; then
+  FINAL_ARGS="$FINAL_ARGS--archive-user=$ARCHIVE_USER "
+fi
+
+
+if [ "$ARCHIVE_PASS" != "" ]; then
+  FINAL_ARGS="$FINAL_ARGS--archive-pass=$ARCHIVE_PASS "
+fi
+
+
+if [ "$ARCHIVE_PATH" != "" ]; then
+  FINAL_ARGS="$FINAL_ARGS--archive-path=$ARCHIVE_PATH"
+fi
+
+## uncomment when required, useful for debugging the supplied arguments
+#echo "running app with: '$FINAL_ARGS'"
 dotnet /var/app/BackupMonitor.dll $FINAL_ARGS
