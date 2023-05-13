@@ -63,6 +63,10 @@ services:
       - NAME=my-backup
       ## Optionally you can specify an interval to re-run the backup creation every x seconds.
 #       - INTERVAL=43200
+      ## Alternatively, but optionally you can specify a time in HH:MM:SS format when this instace will create backup files.
+      ## In this example backups will be created everyday at 02:00 in the morning.
+      ## Also check the volume section to ensure the timezone is correctly applied.
+#       - RUN_AT_TIME=02:00:00
       ## Optionally you can specify a password to protect your backup files.
 #       - PASSWORD=test123
       ## Includes the current local date in the backup file name as such YYYY-MM-DD
@@ -71,24 +75,24 @@ services:
        - WITH_TIME=1
       ## The domain name, hostname or ip address of your MQTT broker. If this variable is empty or
       ## unspecified the other MQTT variables will be ignored.
-#      - MQTT_HOST=192.168.2.10
+#       - MQTT_HOST=192.168.2.10
       ## Set the port of your MQTT broker to which the client connects, if enabled.
-#      - MQTT_PORT=1883
+#       - MQTT_PORT=1883
       ## Set an identifier for this instance when MQTT is enabled. This value will be used in the topic name
       ## like so: /monitor/MQTT_HOSTID/backup/..
-#      - MQTT_HOSTID=my-test-device
+#       - MQTT_HOSTID=my-test-device
       ## Specify the archive type when automatic upload to remote storage is desired.
       ## Currently supported types: none, scp
       ## If the type is set to none or not specified at all the other ARCHIVE variables will be ignored.
-#      - ARCHIVE_TYPE=scp
+#       - ARCHIVE_TYPE=scp
       ## The endpoint / address of your remote storage server.
-#      - ARCHIVE_ENDPOINT=storage.my-awesome-host.com
+#       - ARCHIVE_ENDPOINT=storage.my-awesome-host.com
       ## The user required for authentification on your remote storage.
-#      - ARCHIVE_USER=user
+#       - ARCHIVE_USER=user
       ## The password which may be required for authentification on your remote storage.
-#      - ARCHIVE_PASS=password
+#       - ARCHIVE_PASS=password
       ## A relative path which should be used as base directory for file uploads on your remote storage.
-#      - ARCHIVE_PATH=~/
+#       - ARCHIVE_PATH=~/
     volumes:
       ## Basically you can add as many directories as you desire within the */backup/* directory,
       ## however they should be mounted as individual directories and **not directly** as */backup/*
@@ -96,6 +100,9 @@ services:
       - /some/path/to/my-dir2:/backup/my-dir2
       ## The output directory on the host machine where the backup files should be stored.
       - {HOME}/backups:/output
+      ## Only required when using the variable `RUN_AT_TIME` to ensure the timezone within the container matches
+      ## the one specified on your host system.
+#      - /etc/localtime:/etc/localtime:ro
 ```
 
 ### Examples
@@ -133,6 +140,9 @@ services:
 - Feel free to submit any changes you see fit or do whatever you want, because its MIT licensed.
 
 ### Changelog
+
+**v0.0.3**
+- added the `RUN_AT_TIME` variable to specify a target time when to create backups instead of using the `INTERVAL` variable.
 
 **v0.0.2**
 - improved error handling especially for the file transfer feature.

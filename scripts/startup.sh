@@ -72,7 +72,12 @@ fi
 
 
 if [ "$ARCHIVE_PATH" != "" ]; then
-  FINAL_ARGS="$FINAL_ARGS--archive-path=$ARCHIVE_PATH"
+  FINAL_ARGS="$FINAL_ARGS--archive-path=$ARCHIVE_PATH "
+fi
+
+
+if [ "$RUN_AT_TIME" != "" ]; then
+  FINAL_ARGS="$FINAL_ARGS--run-at=$RUN_AT_TIME"
 fi
 
 ## uncomment when required, useful for debugging the supplied arguments

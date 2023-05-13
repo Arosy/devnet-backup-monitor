@@ -27,6 +27,8 @@ namespace BackupMonitor
         private static bool _isUploadEnabled;
         private static bool _isMqttEnabled;
 
+        private static int _lastDayRun;
+
         private static DirectoryInfo _outputInfo;
         private static DirectoryInfo _backupInfo;
 
@@ -66,8 +68,37 @@ namespace BackupMonitor
                 Log("autorun feature is enabled! this instance will stay open until its closed manually.");
             }
 
+
             while (true)
             {
+                if (!string.IsNullOrWhiteSpace(_options.RunAtTime))
+                {
+                    var targetTime = DateTime.Parse(_options.RunAtTime);
+                    var currentTime = DateTime.Now;
+                    var deltaTime = default(TimeSpan);
+
+
+                    Log($"waiting for the specified run at time: {targetTime.Hour}:{targetTime.Minute}:{targetTime.Second}");
+
+                    while (true)
+                    {
+                        currentTime = DateTime.Now;
+                        deltaTime = targetTime.Subtract(currentTime);
+
+                        if (deltaTime.TotalSeconds <= 0 && _lastDayRun != currentTime.Day)
+                        {
+                            _lastDayRun = currentTime.Day;
+                            break;
+                        }
+
+                        // sleep for a moment
+                        System.Threading.Thread.Sleep(1000);
+                    }
+
+                    _autorun = true;
+                    _options.Interval = 1;
+                }
+
                 ConnectMqtt();
                 LoadBackupSources();
                 WriteBackupFile();

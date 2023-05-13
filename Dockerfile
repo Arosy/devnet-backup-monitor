@@ -4,6 +4,7 @@ FROM mcr.microsoft.com/dotnet/runtime:6.0.7-jammy-amd64
 # setup basic variables
 ENV NAME="" \
     INTERVAL=0 \
+	RUN_AT_TIME="" \
     PASSWORD="" \
 	WITH_DATE=0 \
 	WITH_TIME=0 \

@@ -12,6 +12,10 @@ services:
       - NAME=my-backup
       ## Optionally you can specify an interval to re-run the backup creation every x seconds.
 #       - INTERVAL=43200
+      ## Alternatively, but optionally you can specify a time in HH:MM:SS format when this instace will create backup files.
+      ## In this example backups will be created everyday at 02:00 in the morning.
+      ## Also check the volume section to ensure the timezone is correctly applied.
+#       - RUN_AT_TIME=02:00:00
       ## Optionally you can specify a password to protect your backup files.
 #       - PASSWORD=test123
       ## Includes the current local date in the backup file name as such YYYY-MM-DD
@@ -45,3 +49,6 @@ services:
       - /some/path/to/my-dir2:/backup/my-dir2
       ## The output directory on the host machine where the backup files should be stored.
       - {HOME}/backups:/output
+      ## Only required when using the variable `RUN_AT_TIME` to ensure the timezone within the container matches
+      ## the one specified on your host system.
+      - /etc/localtime:/etc/localtime:ro

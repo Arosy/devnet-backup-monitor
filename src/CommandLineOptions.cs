@@ -31,6 +31,13 @@ namespace BackupMonitor
             set;
         }
 
+        [Option("run-at", Required = false, HelpText = "Specify a time instead of an interval in the HH:MM:SS format. This instance will idle until the time has reached.")]
+        public string RunAtTime
+        {
+            get;
+            set;
+        }
+
         [Option("with-date", Required = false)]
         public bool WithDate
         {
