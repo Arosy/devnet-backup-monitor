@@ -1,6 +1,8 @@
 #!/bin/bash
 IMG_NAME=$(cat ./IMAGE)
 IMG_VER=$(cat ./VERSION)
+USER=$(cat ~/.docker-user)
+PASS=$(cat ~/.docker-pass)
 BUILD_FILE="Dockerfile"
 PUSH_BINS=0
 
@@ -49,17 +51,12 @@ fi
 
 
 if [[ "$PUSH_BINS" -eq 1 ]]; then
-  docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm --tag $IMG_NAME:$IMG_VER .
-  docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm --tag $IMG_NAME:latest .
+  sudo docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm --tag $IMG_NAME:$IMG_VER .
+  sudo docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm --tag $IMG_NAME:latest .
   
-  docker run --rm -v $PWD:/workspace \
-    -e DOCKERHUB_USERNAME=$USER \
-    -e DOCKERHUB_PASSWORD=$PASS \
-    -e DOCKERHUB_REPOSITORY=$IMG_NAME \
-    -e README_FILEPATH=/workspace/README.md \
-    peterevans/dockerhub-description:3
+  sudo docker run --rm -v $PWD:/workspace -e DOCKERHUB_USERNAME=$USER -e DOCKERHUB_PASSWORD=$PASS -e DOCKERHUB_REPOSITORY=$IMG_NAME -e README_FILEPATH=/workspace/README.md peterevans/dockerhub-description:3
 else
-  docker buildx build --platform linux/amd64,linux/arm64,linux/arm --tag $IMG_NAME:latest .
-  docker buildx build --load --tag $IMG_NAME:latest .
+  sudo docker buildx build --platform linux/amd64,linux/arm64,linux/arm --tag $IMG_NAME:latest .
+  sudo docker buildx build --load --tag $IMG_NAME:latest .
 fi
 
