@@ -1,6 +1,8 @@
 #!/bin/bash
 IMG_NAME=$(cat ./IMAGE)
 IMG_VER=$(cat ./VERSION)
+BUILD_FILE="Dockerfile"
+PUSH_BINS=0
 
 
 usage() { 
@@ -21,7 +23,8 @@ while getopts t:-: OPT; do
     OPTARG="${OPTARG#=}"      # if long option argument, remove assigning `=`
   fi
   case "$OPT" in
-	image )		   needs_arg; IMG_NAME="$OPTARG" ;;
+    image )        needs_arg; IMG_NAME="$OPTARG" ;;
+    push )         PUSH_BINS=1 ;;
     ??* )          die "Illegal option --$OPT" ;;  # bad long option
     ? )            exit 2 ;;  # bad short option (error reported via getopts)
   esac
@@ -44,5 +47,19 @@ if [ ! -f "./Dockerfile" ]; then
   exit 1
 fi
 
-docker build -t $IMG_NAME:latest . --no-cache
-docker tag $IMG_NAME:latest $IMG_NAME:$IMG_VER
+
+if [[ "$PUSH_BINS" -eq 1 ]]; then
+  docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm --tag $IMG_NAME:$IMG_VER .
+  docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm --tag $IMG_NAME:latest .
+  
+  docker run --rm -v $PWD:/workspace \
+    -e DOCKERHUB_USERNAME=$USER \
+    -e DOCKERHUB_PASSWORD=$PASS \
+    -e DOCKERHUB_REPOSITORY=$IMG_NAME \
+    -e README_FILEPATH=/workspace/README.md \
+    peterevans/dockerhub-description:3
+else
+  docker buildx build --platform linux/amd64,linux/arm64,linux/arm --tag $IMG_NAME:latest .
+  docker buildx build --load --tag $IMG_NAME:latest .
+fi
+

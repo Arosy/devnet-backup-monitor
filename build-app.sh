@@ -42,8 +42,12 @@ fi
 echo "detected '$OS_PREFIX' as host system"
 
 ## LINUX
-dotnet publish $PROJ_FILE -c Debug -r linux-x64 -f $NETVER --output "$BINARY_OUT-debug/linux-x64" $PARAMS
-dotnet publish $PROJ_FILE -c Release -r linux-x64 -f $NETVER --output "$BINARY_OUT/linux-x64" $PARAMS
+dotnet publish $PROJ_FILE -c Debug -r linux-x64 -f $NETVER --output "$BINARY_OUT-debug/linux/amd64" $PARAMS
+dotnet publish $PROJ_FILE -c Release -r linux-x64 -f $NETVER --output "$BINARY_OUT/linux/amd64" $PARAMS
+dotnet publish $PROJ_FILE -c Debug -r linux-arm64 -f $NETVER --output "$BINARY_OUT-debug/linux/arm64" $PARAMS
+dotnet publish $PROJ_FILE -c Release -r linux-arm64 -f $NETVER --output "$BINARY_OUT/linux/arm64" $PARAMS
+dotnet publish $PROJ_FILE -c Debug -r linux-arm -f $NETVER --output "$BINARY_OUT-debug/linux/arm/v7" $PARAMS
+dotnet publish $PROJ_FILE -c Release -r linux-arm -f $NETVER --output "$BINARY_OUT/linux/arm/v7" $PARAMS
 
 ## OSX
 #dotnet publish $PROJ_FILE -c Debug -r osx-x64 -f $NETVER --output "$BINARY_OUT-debug/osx-x64" $PARAMS

@@ -11,6 +11,27 @@ A lightweight and dockerized application which allows the hassle free creation o
 - Either run the container a single time or keep it running with the interval option.
 - An integrated MQTT client to push messages to a configured broker whenever certain actions are performed by this container.
 
+### Tested Platforms
+
+- Ubuntu Desktop 22.04 amd64
+- Ubuntu Desktop 20.04 amd64
+- Raspberry Pi: 2/3/4
+- Theoretically any: amd64, arm64 or arm/v7 system.
+
+### Requirements
+
+- [docker](https://docs.docker.com/get-docker/)
+- Ideally, but not required: [docker-compose](https://docs.docker.com/compose/install/)
+
+##### `Install on ubuntu/debian/raspbian`
+```bash
+# install docker only
+sudo apt-get update; sudo apt-get install docker.io -yq
+
+# OR! install with compose
+sudo apt-get update; sudo apt-get install docker.io docker-compose -yq
+```
+
 ### Configuration
 
 #### Environment Variables
@@ -48,7 +69,6 @@ $ docker run -d --rm --name="backup_monitor" \
 ```
 
 ##### `docker-compose.yml`
-
 ```yml
 version: '3'
 services:
@@ -141,6 +161,10 @@ services:
 - Feel free to submit any changes you see fit or do whatever you want, because its MIT licensed.
 
 ### Changelog
+
+**v0.0.4**
+- added support for more platforms: arm64, arm/v7
+- improved source file ingestion which should be more reliable now, especially when a single file in a directory is inaccessible.
 
 **v0.0.3**
 - added the `RUN_AT_TIME` variable to specify a target time when to create backups instead of using the `INTERVAL` variable.

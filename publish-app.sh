@@ -2,7 +2,7 @@
 
 SKIP_DOCKER=0
 SKIP_BUILD=0
-IMG_NAME=""
+IMG_NAME=$(cat IMAGE)
 IMG_VER=$(cat VERSION)
 USER=$(cat ~/.docker-user)
 PASS=$(cat ~/.docker-pass)
@@ -52,7 +52,7 @@ sudo docker login
 sudo docker push $IMG_NAME:$IMG_VER
 sudo docker push $IMG_NAME:latest
 
-sudo docker run -v $PWD:/workspace \
+sudo docker run --rm -v $PWD:/workspace \
   -e DOCKERHUB_USERNAME=$USER \
   -e DOCKERHUB_PASSWORD=$PASS \
   -e DOCKERHUB_REPOSITORY=$IMG_NAME \

@@ -214,19 +214,13 @@ namespace BackupMonitor
         }
         static void LoadBackupSources()
         {
-            // gets top-level directories
-            foreach (var dir in Directory.GetDirectories(_backupInfo.FullName))
-            {
-                _sources.Add(dir);
-            }
-
-            // gets top-level files
-            foreach (var file in Directory.GetFiles(_backupInfo.FullName, "*.*", SearchOption.TopDirectoryOnly))
+            // todo: --exclude=*.sock;*.tmp
+            foreach (var file in Directory.GetFiles(_backupInfo.FullName, "*.*", SearchOption.AllDirectories))
             {
                 _sources.Add(file);
             }
 
-            Log($"found {_sources.Count} top level sources to process.");
+            Log($"found {_sources.Count} sources to process.");
         }
         static void WriteBackupFile()
         {
@@ -348,6 +342,16 @@ namespace BackupMonitor
                     }
                     else
                     {
+                        try
+                        {
+                            File.OpenRead(item).Close();
+                        }
+                        catch
+                        {
+                            LogWarn($"cannot open file: '{item}' for copy, going to skip this item ..");
+                            continue;
+                        }
+
                         zip.AddFile(item, path.Replace(info.Name, string.Empty));
                         Log($"added file: {item}");
                     }
