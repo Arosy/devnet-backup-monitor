@@ -77,7 +77,11 @@ fi
 
 
 if [ "$RUN_AT_TIME" != "" ]; then
-  FINAL_ARGS="$FINAL_ARGS--run-at=$RUN_AT_TIME"
+  FINAL_ARGS="$FINAL_ARGS--run-at=$RUN_AT_TIME "
+fi
+
+if [[ "$DEBUG" -eq 1 ]]; then
+  FINAL_ARGS="$FINAL_ARGS--debug"
 fi
 
 ## uncomment when required, useful for debugging the supplied arguments

@@ -18,7 +18,8 @@ ENV NAME="" \
 	ARCHIVE_ENDPOINT="" \
 	ARCHIVE_USER="" \
 	ARCHIVE_PASS="" \
-	ARCHIVE_PATH=""
+	ARCHIVE_PATH="" \
+	DEBUG=0
 
 RUN apt-get update
 RUN apt-get install sshpass -yq

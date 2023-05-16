@@ -10,6 +10,7 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 test-compose.yml
+run-local-amd64.sh
 
 # Build results
 [Dd]ebug/

@@ -131,6 +131,13 @@ namespace BackupMonitor
             get;
             set;
         }
+
+        [Option("debug", Required = false, HelpText = "Generates more console output when enabled.")]
+        public bool IsDebug
+        {
+            get;
+            set;
+        }
     }
 }
 

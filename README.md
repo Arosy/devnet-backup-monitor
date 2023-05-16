@@ -55,6 +55,7 @@ sudo apt-get update; sudo apt-get install docker.io docker-compose -yq
 | ARCHIVE_USER | `empty` | Specify the username required for authentification on the remote server. |
 | ARCHIVE_PASS | `empty` | Depending on your configuration you may or may not have to fill this field, however this is used for authentification aswell. |
 | ARCHIVE_PATH | `empty` | Specify a relative path on the archive server which is used as base path for the automatic uploaded backup files. |
+| DEBUG | 0 | Generates more console output. Only useful for diagnostic purposes. |
 
 ### Get it up and running
 
@@ -114,6 +115,9 @@ services:
 #       - ARCHIVE_PASS=password
       ## A relative path which should be used as base directory for file uploads on your remote storage.
 #       - ARCHIVE_PATH=~/
+      ## Generates more console output. Only useful for diagnostic purposes.
+#       - DEBUG=0
+
     volumes:
       ## Basically you can add as many directories as you desire within the */backup/* directory,
       ## however they should be mounted as individual directories and **not directly** as */backup/*
@@ -161,6 +165,9 @@ services:
 - Feel free to submit any changes you see fit or do whatever you want, because its MIT licensed.
 
 ### Changelog
+
+**v0.0.5**
+- fixed more issues with file ingestion which could lead to not creating backup files.
 
 **v0.0.4**
 - added support for more platforms: arm64, arm/v7

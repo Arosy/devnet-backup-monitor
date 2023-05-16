@@ -32,8 +32,6 @@ while getopts t:-: OPT; do
   esac
 done
 
-echo $IMG_NAME
-
 if [ "$IMG_NAME" == "" ]; then
   echo "no image name was specified!"
   exit 1
@@ -56,6 +54,8 @@ if [[ "$PUSH_BINS" -eq 1 ]]; then
   
   sudo docker run --rm -v $PWD:/workspace -e DOCKERHUB_USERNAME=$USER -e DOCKERHUB_PASSWORD=$PASS -e DOCKERHUB_REPOSITORY=$IMG_NAME -e README_FILEPATH=/workspace/README.md peterevans/dockerhub-description:3
 else
+  sudo docker rmi $IMG_NAME:latest
+  sudo docker rmi $IMG_NAME:$IMG_VER
   sudo docker buildx build --platform linux/amd64,linux/arm64,linux/arm --tag $IMG_NAME:latest .
   sudo docker buildx build --load --tag $IMG_NAME:latest .
 fi

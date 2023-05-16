@@ -42,6 +42,8 @@ services:
 #      - ARCHIVE_PASS=password
       ## A relative path which should be used as base directory for file uploads on your remote storage.
 #      - ARCHIVE_PATH=~/
+      ## Generates more console output. Only useful for diagnostic purposes.
+#       - DEBUG=0
     volumes:
       ## Basically you can add as many directories as you desire within the */backup/* directory,
       ## however they should be mounted as individual directories and **not directly** as */backup/*

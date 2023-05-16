@@ -19,6 +19,7 @@ namespace BackupMonitor
     {
         private static char[] ALLOWED_NAME_SYMBOLS = new char[] { '[', ']', '(', ')', '-', '_', '.' };
         private static CommandLineOptions _options;
+        private static List<string> _failedFiles;
         private static List<string> _sources;
         private static MqttClient _client;
         private static string _basePath;
@@ -28,6 +29,7 @@ namespace BackupMonitor
         private static bool _isMqttEnabled;
 
         private static int _lastDayRun;
+        private static int _fileStoreErrors;
 
         private static DirectoryInfo _outputInfo;
         private static DirectoryInfo _backupInfo;
@@ -80,6 +82,12 @@ namespace BackupMonitor
 
                     Log($"waiting for the specified run at time: {targetTime.Hour}:{targetTime.Minute}:{targetTime.Second}");
 
+                    if (targetTime.Subtract(currentTime).TotalSeconds <= 0)
+                    { // ensures we won't run for a time set on the same day which occured
+                      // prior to executing this app instance.
+                        _lastDayRun = currentTime.Day;
+                    }
+
                     while (true)
                     {
                         currentTime = DateTime.Now;
@@ -89,6 +97,11 @@ namespace BackupMonitor
                         {
                             _lastDayRun = currentTime.Day;
                             break;
+                        }
+
+                        if (_options.IsDebug)
+                        {
+                            Log($"waiting for specified run time, currently: {deltaTime.TotalSeconds} seconds are remaining");
                         }
 
                         // sleep for a moment
@@ -124,12 +137,14 @@ namespace BackupMonitor
 
         static void Initialize()
         {
+            
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
                 LogError("this program is not designed to run outside a docker container !", true);
                 return;
             }
 
+            _failedFiles = new List<string>();
             _sources = new List<string>();
             _backupInfo = new DirectoryInfo("/backup");
             _outputInfo = new DirectoryInfo("/output");
@@ -320,6 +335,9 @@ namespace BackupMonitor
                     PublishMQTT($"monitor/{_options.Hostname}/backup/status", backupInfo);
                 }
 
+                zip.ZipErrorAction = ZipErrorAction.InvokeErrorEvent;
+                zip.ZipError += Zip_ZipError;
+
                 foreach (var item in _sources)
                 {
                     info = new FileInfo(item);
@@ -338,7 +356,11 @@ namespace BackupMonitor
                     if (Directory.Exists(info.FullName))
                     {
                         zip.AddDirectory(item, path);
-                        Log($"added directory: {item}");
+
+                        if (_options.IsDebug)
+                        {
+                            Log($"added directory: {item}");
+                        }
                     }
                     else
                     {
@@ -351,15 +373,47 @@ namespace BackupMonitor
                             LogWarn($"cannot open file: '{item}' for copy, going to skip this item ..");
                             continue;
                         }
-
                         zip.AddFile(item, path.Replace(info.Name, string.Empty));
-                        Log($"added file: {item}");
+
+                        if (_options.IsDebug)
+                        {
+                            Log($"added file: {item}");
+                        }
                     }
                 }
 
                 Log("saving backup file, hang tight ..");
                 zip.Save($"/output/{name}.zip");
                 Log($"saved backup file: '{name}.zip'");
+
+                zip.ZipError -= Zip_ZipError;
+
+                if (_fileStoreErrors > 0)
+                {
+                    if (_options.IsDebug)
+                    {
+                        LogError("The files listed below couldn't be stored in the backup file.");
+                        foreach(var file in _failedFiles)
+                        {
+                            LogError(file);
+                        }
+                        LogError($"------------------------------------");
+                    }
+                    else
+                    { // atleast log a minimal message
+                        LogWarn($"couldn't save {_fileStoreErrors} files in the backup file. (run with --debug to see the affected files)");
+                    }
+                }
+                else
+                {
+                    Log($"successfully stored {_sources.Count} files in the backup file.");
+                }
+
+                // reset error count
+                System.Threading.Interlocked.Exchange(ref _fileStoreErrors, 0);
+
+                // reset the "failures"
+                _failedFiles.Clear();
                 
                 if (_isMqttEnabled)
                 {
@@ -383,6 +437,19 @@ namespace BackupMonitor
                 }
             }
         }
+
+        private static void Zip_ZipError(object sender, ZipErrorEventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(e.FileName))
+            {
+                System.Threading.Interlocked.Increment(ref _fileStoreErrors);
+
+                _failedFiles.Add(e.FileName);
+
+                LogWarn($"cannot store file: '{e.FileName}'");
+            }
+        }
+
         static void UploadBackupFile(string name, BackupFileInfo backupInfo)
         {
             IArchiveConnector connector;
