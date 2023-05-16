@@ -167,6 +167,7 @@ services:
 ### Changelog
 
 **v0.0.5**
+- fixed an issue with the `RUN_AT_TIME` parameter set, which could lead to running too early.
 - fixed more issues with file ingestion which could lead to not creating backup files.
 
 **v0.0.4**
