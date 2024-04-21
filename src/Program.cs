@@ -355,7 +355,15 @@ namespace BackupMonitor
 
                     if (Directory.Exists(info.FullName))
                     {
-                        zip.AddDirectory(item, path);
+                        try
+                        {
+                            zip.AddDirectory(item, path);
+                        }
+                        catch (Exception ex)
+                        {
+                            LogError($"encountered error while packing directory: {ex.Message}");
+                            continue;
+                        }
 
                         if (_options.IsDebug)
                         {
@@ -373,7 +381,18 @@ namespace BackupMonitor
                             LogWarn($"cannot open file: '{item}' for copy, going to skip this item ..");
                             continue;
                         }
-                        zip.AddFile(item, path.Replace(info.Name, string.Empty));
+
+                        try
+                        {
+                            zip.AddFile(item, path.Replace(info.Name, string.Empty));
+                        }
+                        catch (Exception ex)
+                        {
+                            _fileStoreErrors++;
+                            _failedFiles.Add(item);
+                            LogError($"encountered error while packing file: {ex.Message}");
+                            continue;
+                        }
 
                         if (_options.IsDebug)
                         {
@@ -383,6 +402,7 @@ namespace BackupMonitor
                 }
 
                 Log("saving backup file, hang tight ..");
+                zip.UseZip64WhenSaving = Zip64Option.AsNecessary;
                 zip.Save($"/output/{name}.zip");
                 Log($"saved backup file: '{name}.zip'");
 

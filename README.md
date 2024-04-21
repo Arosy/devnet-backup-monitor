@@ -22,15 +22,22 @@ A lightweight and dockerized application which allows the hassle free creation o
 
 - [docker](https://docs.docker.com/get-docker/)
 - Ideally, but not required: [docker-compose](https://docs.docker.com/compose/install/)
+- net6.0 when building from source
 
 ##### `Install on ubuntu/debian/raspbian`
 ```bash
 # install docker only
-sudo apt-get update; sudo apt-get install docker.io -yq
+sudo apt-get update && sudo apt-get install docker.io -yq
 
 # OR! install with compose
-sudo apt-get update; sudo apt-get install docker.io docker-compose -yq
+sudo apt-get update && sudo apt-get install docker.io docker-compose -yq
 ```
+
+### Compilation
+
+Please note that you need access to the `dotnet` command line utility, before you're able to compile the source code.
+
+To build the app from its source code you simply need to run `./build-app.sh` located in the root repository directory.
 
 ### Configuration
 
@@ -84,39 +91,39 @@ services:
       ## are allowed. The allowed symbols are: .-_()[]
       - NAME=my-backup
       ## Optionally you can specify an interval to re-run the backup creation every x seconds.
-#       - INTERVAL=43200
+#      - INTERVAL=43200
       ## Alternatively, but optionally you can specify a time in HH:MM:SS format when this instace will create backup files.
       ## In this example backups will be created everyday at 02:00 in the morning.
       ## Also check the volume section to ensure the timezone is correctly applied.
-#       - RUN_AT_TIME=02:00:00
+#      - RUN_AT_TIME=02:00:00
       ## Optionally you can specify a password to protect your backup files.
-#       - PASSWORD=test123
+#      - PASSWORD=test123
       ## Includes the current local date in the backup file name as such YYYY-MM-DD
-       - WITH_DATE=1
+      - WITH_DATE=1
       ## Includes the current local time in the backup file name as such HH-MM-SS
-       - WITH_TIME=1
+      - WITH_TIME=1
       ## The domain name, hostname or ip address of your MQTT broker. If this variable is empty or
       ## unspecified the other MQTT variables will be ignored.
-#       - MQTT_HOST=192.168.2.10
+#      - MQTT_HOST=192.168.2.10
       ## Set the port of your MQTT broker to which the client connects, if enabled.
-#       - MQTT_PORT=1883
+#      - MQTT_PORT=1883
       ## Set an identifier for this instance when MQTT is enabled. This value will be used in the topic name
       ## like so: /monitor/MQTT_HOSTID/backup/..
-#       - MQTT_HOSTID=my-test-device
+#      - MQTT_HOSTID=my-test-device
       ## Specify the archive type when automatic upload to remote storage is desired.
       ## Currently supported types: none, scp
       ## If the type is set to none or not specified at all the other ARCHIVE variables will be ignored.
-#       - ARCHIVE_TYPE=scp
+#      - ARCHIVE_TYPE=scp
       ## The endpoint / address of your remote storage server.
-#       - ARCHIVE_ENDPOINT=storage.my-awesome-host.com
+#      - ARCHIVE_ENDPOINT=storage.my-awesome-host.com
       ## The user required for authentification on your remote storage.
-#       - ARCHIVE_USER=user
+#      - ARCHIVE_USER=user
       ## The password which may be required for authentification on your remote storage.
-#       - ARCHIVE_PASS=password
+#      - ARCHIVE_PASS=password
       ## A relative path which should be used as base directory for file uploads on your remote storage.
-#       - ARCHIVE_PATH=~/
+#      - ARCHIVE_PATH=~/
       ## Generates more console output. Only useful for diagnostic purposes.
-#       - DEBUG=0
+#      - DEBUG=0
 
     volumes:
       ## Basically you can add as many directories as you desire within the */backup/* directory,
@@ -165,6 +172,10 @@ services:
 - Feel free to submit any changes you see fit or do whatever you want, because its MIT licensed.
 
 ### Changelog
+
+**v0.0.6**
+- fixed an issue where packing files or directories which won't allow compression, e.g. due being in use or locked.
+- fixed an issue with line idention in the example compose file.
 
 **v0.0.5**
 - fixed an issue with the `RUN_AT_TIME` parameter set, which could lead to running too early.
