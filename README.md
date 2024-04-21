@@ -173,6 +173,9 @@ services:
 
 ### Changelog
 
+**v0.0.7**
+- improved some logging and internal code behaviour, especially for locked files.
+
 **v0.0.6**
 - fixed an issue where packing files or directories which won't allow compression, e.g. due being in use or locked.
 - fixed an issue with line idention in the example compose file.

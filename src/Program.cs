@@ -229,13 +229,37 @@ namespace BackupMonitor
         }
         static void LoadBackupSources()
         {
-            // todo: --exclude=*.sock;*.tmp
-            foreach (var file in Directory.GetFiles(_backupInfo.FullName, "*.*", SearchOption.AllDirectories))
+            var info = default(FileInfo);
+            var errorFiles = 0;
+
+
+            foreach (var f in Directory.GetFiles(_backupInfo.FullName, "*.*", SearchOption.AllDirectories))
             {
-                _sources.Add(file);
+                info = new FileInfo(f);
+
+                try
+                { // basic check if we can access the file without throwing an exception..
+                    info.OpenRead().Close();
+                    _sources.Add(f);
+                }
+                catch (Exception)
+                {
+                    if (_options.IsDebug)
+                    {
+                        LogWarn($"Cannot access file in read mode: '{info.FullName}', going to skip this element..");
+                    }
+
+                    errorFiles++;
+                    continue;
+                }
             }
 
-            Log($"found {_sources.Count} sources to process.");
+            Log($"found {_sources.Count} valid input files to process.");
+
+            if (errorFiles > 0)
+            {
+                LogWarn($"found {errorFiles} files which threw an error while accessing. (run with DEBUG enabled to see more info)");
+            }
         }
         static void WriteBackupFile()
         {
@@ -457,6 +481,202 @@ namespace BackupMonitor
                 }
             }
         }
+        static void WriteBackupFile2()
+        {
+            var time = DateTime.Now;
+
+
+            using (ZipFile zip = new ZipFile())
+            {
+                BackupFileInfo backupInfo;
+                FileInfo info;
+                string name;
+                string path;
+
+
+                if (string.IsNullOrWhiteSpace(_options.Name))
+                { // auto generate name
+                    name = $"backup";
+
+                    // when default this should guarantee unique files.
+                    _options.WithDate = true;
+                    _options.WithTime = true;
+                }
+                else
+                {
+                    name = _options.Name;
+                }
+
+                if (_options.WithDate)
+                {
+                    name = $"{name}-{time.Year}-{time.Month}-{time.Day}";
+                }
+
+                if (_options.WithTime)
+                {
+                    name = $"{name}-{time.Hour}-{time.Minute}-{time.Second}";
+                }
+
+                if (!string.IsNullOrWhiteSpace(_options.Password))
+                {
+                    zip.Password = _options.Password;
+                }
+                else
+                {
+                    LogWarn($"creating unprotected backup file: '{name}' (no password was specified)");
+                }
+
+                if (_backupInfo == null)
+                {
+                    LogError("the backup info is NULL", true);
+                    return;
+                }
+
+                _backupInfo.Refresh();
+                if (!_backupInfo.Exists)
+                {
+                    LogError("the backup directory does not exist!", true);
+                    return;
+                }
+
+                if (_sources == null)
+                {
+                    LogError("the sources are NULL", true);
+                    return;
+                }
+
+                // sanitize the name to ensure only valid symbols are used.
+                var invalidChars = new StringBuilder();
+                var tmpName = new StringBuilder();
+                foreach (var @char in name.ToCharArray())
+                {
+                    if (!char.IsLetter(@char) && !char.IsNumber(@char) && !ALLOWED_NAME_SYMBOLS.Any(x => x.Equals(@char)))
+                    {
+                        invalidChars.Append(@char);
+                        continue;
+                    }
+
+                    tmpName.Append(@char);
+                }
+
+                if (!string.IsNullOrWhiteSpace(invalidChars.ToString()))
+                {
+                    name = tmpName.ToString();
+                    LogWarn($"the backup name contains invalid symbols: '{invalidChars}' and was renamed to: '{tmpName}' (they will be replaced with empty chars)");
+                }
+
+
+
+                backupInfo = new BackupFileInfo($"{name}.zip",
+                                                _sources.ToArray(),
+                                                !string.IsNullOrWhiteSpace(_options.Password),
+                                                _isUploadEnabled,
+                                                _autorun);
+
+                if (_isMqttEnabled)
+                {
+                    backupInfo.Status = BackupStatus.FileCreating;
+                    PublishMQTT($"monitor/{_options.Hostname}/backup/status", backupInfo);
+                }
+
+                zip.ZipErrorAction = ZipErrorAction.InvokeErrorEvent;
+                zip.ZipError += Zip_ZipError;
+
+
+                foreach(var item in _sources)
+                {
+                    foreach(var file in GetAccessibleFilesFromPath(item))
+                    {
+                        // prepare the path in the zip file
+                        path = file.FullName.Replace(_backupInfo.FullName, string.Empty);
+
+                        // add the actual file
+                        zip.AddFile(file.FullName, path.Replace(file.Name, string.Empty));
+                    }
+                }
+
+                Log("saving backup file, hang tight ..");
+                zip.UseZip64WhenSaving = Zip64Option.AsNecessary;
+                zip.Save($"/output/{name}.zip");
+                Log($"saved backup file: '{name}.zip'");
+
+                zip.ZipError -= Zip_ZipError;
+
+                if (_fileStoreErrors > 0)
+                {
+                    if (_options.IsDebug)
+                    {
+                        LogError("The files listed below couldn't be stored in the backup file.");
+                        foreach (var file in _failedFiles)
+                        {
+                            LogError(file);
+                        }
+                        LogError($"------------------------------------");
+                    }
+                    else
+                    { // atleast log a minimal message
+                        LogWarn($"couldn't save {_fileStoreErrors} files in the backup file. (run with --debug to see the affected files)");
+                    }
+                }
+                else
+                {
+                    Log($"successfully stored {_sources.Count} files in the backup file.");
+                }
+
+                // reset error count
+                System.Threading.Interlocked.Exchange(ref _fileStoreErrors, 0);
+
+                // reset the "failures"
+                _failedFiles.Clear();
+
+                if (_isMqttEnabled)
+                {
+                    backupInfo.Status = BackupStatus.FileCreated;
+                    backupInfo.SizeInBytes = new FileInfo($"/output/{name}.zip").Length;
+
+                    PublishMQTT($"monitor/{_options.Hostname}/backup/status", backupInfo);
+                }
+
+                // push upload
+                if (_isUploadEnabled)
+                {
+                    try
+                    {
+                        UploadBackupFile(name, backupInfo);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogError($"an error occured while uploading backup file: '{ex.Message}'");
+                    }
+                }
+            }
+        }
+
+        static IReadOnlyCollection<FileInfo> GetAccessibleFilesFromPath(string path, string searchPattern = "*.*")
+        {
+            var result = new List<FileInfo>();
+            var info = default(FileInfo);
+
+
+            foreach(var f in Directory.GetFiles(path, searchPattern, SearchOption.AllDirectories))
+            {
+                info = new FileInfo(f);
+                
+                try
+                { // basic check if we can access the file without throwing an exception..
+                    info.OpenRead().Close();
+                    result.Add(info);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+            }
+
+            return result;
+        }
+
+
 
         private static void Zip_ZipError(object sender, ZipErrorEventArgs e)
         {
