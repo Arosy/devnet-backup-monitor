@@ -5,4 +5,4 @@ if [ ! -z "$1" ]; then
   IMG_NAME="$1"
 fi
 
-docker run  --rm --env-file ./dev.env -v ${HOME}/backup-test/my-dir:/backup/my-dir -v ${HOME}/backup-test/my-dir2:/backup/my-dir2 -v ${HOME}/backup-test:/output -t $IMG_NAME:latest
+docker run --rm -v /home/arosy:/home/arosy:ro -v /tmp/backups:/tmp/backups:rw -v ./templates:/templates:ro -t $IMG_NAME:latest

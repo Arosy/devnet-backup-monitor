@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BackupMonitor.Templates.Backups;
 
 
 namespace BackupMonitor.Templates
@@ -35,7 +36,7 @@ namespace BackupMonitor.Templates
         /// This method is used to initialize the underlying archive client
         /// based on what was passed through configuration.
         /// </summary>
-        void Initialize(ArchiveHostOptions options);
+        void Initialize(IBackupUpload options);
 
         /// <summary>
         /// Transfers the given file to the previously configured archive host.

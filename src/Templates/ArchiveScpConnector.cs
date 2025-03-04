@@ -22,6 +22,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using BackupMonitor.Templates.Backups;
+
 
 namespace BackupMonitor.Templates
 {
@@ -40,14 +42,14 @@ namespace BackupMonitor.Templates
             private set;
         }
 
-        public void Initialize(ArchiveHostOptions options)
+        public void Initialize(IBackupUpload options)
         {
             if (options == null)
             {
                 throw new ArgumentNullException("cannot initialize with NULL options.");
             }
 
-            if (string.IsNullOrWhiteSpace(options.Endpoint))
+            if (string.IsNullOrWhiteSpace(options.Host))
             {
                 throw new ArgumentNullException("cannot initialize with NULL endpoint.");
             }
@@ -62,9 +64,9 @@ namespace BackupMonitor.Templates
                 throw new ArgumentNullException("cannot initialize with NULL path.");
             }
 
-            if (options.Endpoint.Contains(':'))
+            if (options.Host.Contains(':'))
             {
-                var tmp = options.Endpoint.Split(':');
+                var tmp = options.Host.Split(':');
 
 
                 _address = tmp[0];
@@ -72,7 +74,7 @@ namespace BackupMonitor.Templates
             }
             else
             {
-                _address = options.Endpoint;
+                _address = options.Host;
                 _port = 23;
             }
 
@@ -84,6 +86,11 @@ namespace BackupMonitor.Templates
             _username = options.Username;
             _password = options.Password;
             _path = options.Path;
+
+            if (!_path.EndsWith("/"))
+            {
+                _path = $"{_path}/";
+            }
         }
 
         public TransferStatus Transfer(string file)

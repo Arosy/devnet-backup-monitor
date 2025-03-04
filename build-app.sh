@@ -6,7 +6,7 @@ BINARY_OUT="./builds/backup-monitor"
 PROJ_FILE="./src/BackupMonitor.csproj"
 
 # THE DOTNET VERSION USED FOR COMPILATION
-NETVER="net6.0"
+NETVER="net8.0"
 
 ### DO NOT MODIFY VARIABLES BELOW !!!
 PARAMS=""

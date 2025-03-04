@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM mcr.microsoft.com/dotnet/runtime:6.0.7-jammy
+FROM mcr.microsoft.com/dotnet/runtime:8.0
 ARG TARGETPLATFORM
 # setup basic variables
 ENV NAME="" \
@@ -27,6 +27,9 @@ RUN apt-get install sshpass -yq
 # copy the actual binaries ..
 RUN mkdir /var/app
 COPY ./builds/backup-monitor/$TARGETPLATFORM/ /var/app/
+
+# dummy file so the app knows its within a container
+RUN touch /var/app/.docker
 
 # register the startup script and make it executable
 COPY ./scripts/startup.sh /bin/startup.sh

@@ -1,0 +1,33 @@
+name: test_backup.zip # the name of your backup archive created by this template.
+inputs: # a collection of paths to describe which files or directory structures should be processed.
+  - /home/arosy/ # either use a 1:1 approach
+#  - /mounted/dir/with/other/name # or specify a drive path which is mounted into the container which can be different from the host.
+output: /tmp/backups # in this directory a file with the given name will be created. same rules as for input applies, these paths just need to be accessible from the container.
+#schedule: # optionally specify a schedule to enable that this template runs automatically.
+#  week: 3 # when specified, this job will run once a month
+#  day: "monday;wednesday;saturday" # when specified, this job will run on that weekday or supply multiple days where each value is seperated with a ;
+#  hour: 4
+#  minute: 20
+#archive: # optionally encrypt your backup file with a password.
+#  pass: mypasswd
+#upload: # optionally specify an online storage where the output of this template will be stored.
+#  mode: "scp" # 'scp'
+#  host: user.your-storagebox.de
+#  user: myusername
+#  pass: somestrongpass
+#  path: /backups/test # this directory needs to exist on the server, otherwise the upload will result in a file.
+#mqtt: # optionally specify mqtt (currently WIP)
+#  host: myhost
+#  port: 1883
+#  user: myuser
+#  pass: mypass
+#  id: my.test.backup
+exclusions: # optionally, but recommend exclude any directory or file with support for wildcards for names and extensions.
+  - ":" # special case when wine is installed
+  - "/trash/" # recycle bin on linux
+  - .cache # caching directory used by many apps
+  - /snap # install directory for snap packages
+settings: # advanced settings
+  try_read: false # when set to true, a read operation is performed on each detected input file, to ensure files are readable.
+  overwrite: true # when set to false, an error will be thrown when output backup file already exists.
+  path_mode: "absolute" # 'absolute' or 'relative'

@@ -1,8 +1,8 @@
 #!/bin/bash
 IMG_NAME=$(cat ./IMAGE)
 IMG_VER=$(cat ./VERSION)
-USER=$(cat ~/.docker-user)
-PASS=$(cat ~/.docker-pass)
+USER=$(cat ./.docker-user)
+PASS=$(cat ./.docker-pass)
 BUILD_FILE="Dockerfile"
 PUSH_BINS=0
 
