@@ -29,11 +29,15 @@ A lightweight and dockerized .net application which allows highly customizeable 
 
 
 ### `Install on ubuntu/debian/raspbian`
+
 **install docker only**
+
 ```bash
 sudo apt-get update && sudo apt-get install docker.io -yq
 ```
+
 **OR! install with compose**
+
 ```bash
 sudo apt-get update && sudo apt-get install docker.io docker-compose -yq
 ```

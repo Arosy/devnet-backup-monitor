@@ -2,24 +2,7 @@
 FROM mcr.microsoft.com/dotnet/runtime:8.0
 ARG TARGETPLATFORM
 # setup basic variables
-ENV NAME="" \
-    INTERVAL=0 \
-	RUN_AT_TIME="" \
-    PASSWORD="" \
-	WITH_DATE=0 \
-	WITH_TIME=0 \
-    MQTT_HOST="" \
-    MQTT_PORT=1883 \
-    MQTT_HOSTID="" \
-    MQTT_CLIENT_ID="" \
-    MQTT_USER="" \
-    MQTT_PASS="" \
-	ARCHIVE_TYPE="" \
-	ARCHIVE_ENDPOINT="" \
-	ARCHIVE_USER="" \
-	ARCHIVE_PASS="" \
-	ARCHIVE_PATH="" \
-	DEBUG=0
+ENV DEBUG=0
 
 RUN apt-get update
 RUN apt-get install sshpass -yq
